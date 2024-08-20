@@ -1,0 +1,123 @@
+generator client {
+    provider = "prisma-client-js"
+
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Admin {
+  id String @id @default(cuid())
+  user String @default("superAdmin")
+  password String @default("superAdmin")
+  role Role @default(ADMIN)
+}
+
+model Utilisateur {
+
+  id String @id @default(cuid())
+  code String 
+  nom String
+  prenom String
+  dateNaissance  DateTime
+  role  Role
+  idAdmin String
+  password String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+
+  Projection Projection[] @relation("RespoProdToProject")
+  Note Note[] @relation("JuryToNote")
+  Films Films[] @relation("filmsToUser")
+
+  Realisateur Realisateur[] @relation("RealToUser")
+
+  Production Production[] @relation("RealToUser")
+}
+model Realisateur {
+
+  id String @id @default(cuid())
+  code String 
+  nom String
+  prenom String
+  dateNaissance  DateTime
+  utilisateur Utilisateur @relation("RealToUser", fields: [inspectionId], references: [id])
+  inspectionId String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  Films Films[]
+}
+
+model Production {
+
+  id String @id @default(cuid())
+  code String 
+  nom String
+  prenom String
+  dateNaissance  DateTime
+  utilisateur Utilisateur @relation("RealToUser", fields: [inspectionId], references: [id])
+  inspectionId String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  Films Films[]
+}
+
+model Films{
+  id String @id @default(cuid())
+  code String
+  titre String
+  dateCreate DateTime
+  sujet String
+  realisateur Realisateur @relation( fields: [realisateurId],references: [id])
+  realisateurId String @unique
+  production Production @relation( fields: [productionId], references: [id])
+  productionId String @unique
+  utilisateur Utilisateur @relation( "filmsToUser",fields: [reponsableId], references: [id])
+  reponsableId String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  Note Note?
+
+  Projection Projection[]
+}
+
+
+model Projection{
+  id String @id @default(cuid())
+  jour String
+  date String
+  lieu String
+  salle String
+  films Films @relation(fields: [filmsId],references: [id])
+  filmsId String @default("")
+  Responsable Utilisateur  @relation("RespoProdToProject", fields: [idResProd],references: [id])
+  idResProd String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt  
+}
+model Note{
+  id String @id @default(cuid())
+  note Int @default(0)
+  Jury Utilisateur @relation("JuryToNote", fields: [idJury], references: [id])
+  idJury String
+  films Films @relation(fields: [filmsId],references: [id])
+  filmsId String @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt 
+}
+
+ enum Role {
+  RespoInspection
+  RespoProduction
+  Producteur
+  Realisateur
+  Jury
+  ADMIN
+ }
+
